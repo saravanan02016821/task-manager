@@ -1,0 +1,16 @@
+# Justification
+
+## Commands
+I set the Commands section up front, based on what actually worked on my machine, not from any of the three sessions. I had two different Pythons installed, and only one had the project's dependencies, so I picked the commands that should work instead of guessing something like "pip install" or "pytest." This mattered because a command that doesn't actually run would be worse than no command at all. Claude would just hit the same error I did. If I had to cut this file in half, I'd keep this section exactly as is, since it's the one part that has to be 100% correct for anything else to work in the code.
+
+## Architecture
+This section describes the real layout of the project: routes call services, and services hold the actual logic. I pointed to services/users.py as the example to copy, since it already does the error handling properly. None of the three sessions changed this section, but Session 2 showed why it's important to have regardless because the bug I found (a crash in routes/api.py) happened because the routes layer does not have the same rules as the services layer. If I had to shorten this file, I would try to trim the explanations down more since it's more like a side note than an actual rule Claude needs to follow.
+
+## Conventions
+This section is the part that changed the most. I started with it having basic rules (type hints, docstrings, follow services/users.py), but during Session 2 it showed that routes/api.py could still crash on bad input, so I added a rule requiring routes to check for missing fields. Session 3 showed that a new function could get added without any tests, so I then added a rule requiring tests for any new service function. Both changes were made based off of the real problems Claude ran into during the assignment. No changes were made from trying to guess what could be issues ahead of time. If I had to cut this file in half, I would definetly not cut out any these newly added rules, since they're the ones actually backed by evidence on how important they are.
+
+## Do not touch
+These are the three things I didn't want changed no matter what: don't raise raw exceptions, don't change the three main function signatures, and don't add a database. None of the three sessions broke these rules so this section never needed any kind of update. But it's also the section I'm least confident will stay useful throughout the entire project because it's based only on how the project currently looks. If I had to cut this file in half, I'd would try to combine the "no database" rule into a single line with the others, since I think it may be less urgent than the other two.
+
+## Solo vs. team
+If this was a team project with three developers, the two biggest changes I'd would do are: I'd add a rule that CLAUDE.md itself needs a one-line changelog, so everyone can see why a rule exists, not just what it says, since I only know the "why" because I worked on wroting that rule. Second, I'd add a rule that no one can change the routes/api.py's error handling without updating the conventions section at the same time, since that is the kind of gap three different people could face issues with since they may make their own changes to it separately without talking to each other.
