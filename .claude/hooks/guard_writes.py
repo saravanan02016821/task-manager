@@ -8,11 +8,7 @@ Blocks three kinds of things before they happen:
 """
 import json, os, re, sys
 
-# ── Paths Claude must never write to ───────────────────────────────
-# Week 7 note: MCP tool calls (mcp__<server>__<tool>) also fire PreToolUse.
-# All four rules below should also apply to any MCP tool that can write
-# files (for example a filesystem MCP server) — especially .env and
-# .claude/settings.json, since those protect secrets and the hook itself.
+
 BLOCKED_PATHS = [
     "utils/errors.py",          # Do-not-touch rule 1: the AppError classes every service relies on
     "migrations/",              # Do-not-touch rule 3: no database, so nothing should ever be written here
@@ -20,7 +16,7 @@ BLOCKED_PATHS = [
     ".claude/settings.json",    # Hook config — Claude shouldn't be able to turn off its own guard
 ]
 
-# ── Shell commands Claude must never run ───────────────────────────
+#  Shell commands Claude must never run 
 # \b = word boundary, so "rm" only matches the actual rm command (not "farm"),
 # and "TABLE" doesn't match "TABLESPACE".
 BLOCKED_COMMANDS = [
@@ -32,11 +28,11 @@ BLOCKED_COMMANDS = [
      "git push --force is not allowed. It can wipe out commits on the remote."),
 ]
 
-# ── Content guard: allowed files that must never contain a DB connection string ──
+#  Content guard: allowed files that must never contain a DB connection string 
 CONTENT_GUARDED_FILES = ["services/tasks.py"]
 DB_URL_PATTERN = re.compile(r"postgres(ql)?://|sqlite:///", re.IGNORECASE)
 
-# ── Signs that a shell command writes or changes a file ────────────
+# Signs that a shell command writes or changes a file 
 WRITE_SIGNS = re.compile(
     r">|\btee\b|\bsed\s+-i|\bcp\b|\bmv\b|\brm\b|\btruncate\b|\btouch\b|\bmkdir\b|\bdd\b"
     r"|\bpython3?\b|\bperl\b|\bSet-Content\b|\bAdd-Content\b|\bOut-File\b|\bNew-Item\b",
@@ -110,7 +106,7 @@ def main():
     tool = payload.get("tool_name", "")
     tool_input = payload.get("tool_input", {})
 
-    # ── Branch 1: Bash commands ──
+    #  Branch 1: Bash commands 
     if tool == "Bash":
         command = tool_input.get("command", "")
         for pattern, reason in BLOCKED_COMMANDS:
@@ -127,7 +123,7 @@ def main():
             ])
         sys.exit(0)
 
-    # ── Branch 2: file-write tools ──
+    #  Branch 2: file-write tools 
     if tool in ("Write", "Edit", "MultiEdit"):
         file_path = tool_input.get("file_path") or tool_input.get("path", "")
 
