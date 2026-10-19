@@ -7,10 +7,10 @@
 
 ## Constraints
 - Do not modify utils/errors.py or any file outside $ARGUMENTS.
-- Do not add new AppError subclasses — use only existing ones.
+- Do not add new AppError subclasses, use only existing ones.
 - Preserve all existing function signatures.
 - If a function already raises the correct AppError subclass for its validation, skip it — do not rewrite, reformat, or re-document it.
-- services/users.py is the canonical reference and is correct by definition. If $ARGUMENTS is services/users.py, report "No changes needed — this is the reference file" and stop.
+- services/users.py is the canonical reference and is correct by definition. If $ARGUMENTS is services/users.py, report "No changes needed, this is the reference file" and stop.
 
 ## Verification
 Run pytest -q after every function you update. All existing tests must still pass before you move to the next function. Report the final pytest output when done.
