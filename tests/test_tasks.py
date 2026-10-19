@@ -8,6 +8,7 @@ from services.tasks import (
     create_task,
     create_tasks,
     get_task,
+    get_tasks_by_status,
     list_tasks,
     process_order,
     update_task_priority,
@@ -253,3 +254,36 @@ def test_post_bulk_null_priority(client):
 def test_post_bulk_body_not_non_empty_list(client, body):
     response = client.post("/api/tasks/bulk", json=body)
     assert response.status_code == 422
+
+def test_get_tasks_by_status_open():
+    result = get_tasks_by_status("open")
+    assert [task["id"] for task in result] == [1, 2]
+
+def test_get_tasks_by_status_done():
+    result = get_tasks_by_status("done")
+    assert [task["id"] for task in result] == [3]
+
+def test_get_tasks_by_status_reflects_process_order():
+    process_order(1)
+    assert [task["id"] for task in get_tasks_by_status("open")] == [2]
+    assert [task["id"] for task in get_tasks_by_status("done")] == [1, 3]
+
+def test_get_tasks_by_status_no_matches():
+    process_order(1)
+    process_order(2)
+    assert get_tasks_by_status("open") == []
+
+def test_get_tasks_by_status_empty_tasks():
+    TASKS.clear()
+    assert get_tasks_by_status("open") == []
+    assert get_tasks_by_status("done") == []
+
+@pytest.mark.parametrize("status", ["", "Open", "DONE", " open", "closed"])
+def test_get_tasks_by_status_invalid_value(status):
+    with pytest.raises(ValidationError, match=r"^Invalid status"):
+        get_tasks_by_status(status)
+
+@pytest.mark.parametrize("status", [None, 1, True, ["open"]])
+def test_get_tasks_by_status_invalid_type(status):
+    with pytest.raises(ValidationError, match=r"^Invalid status"):
+        get_tasks_by_status(status)

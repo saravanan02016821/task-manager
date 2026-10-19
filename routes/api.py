@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, jsonify, request
 
+from services.tags import create_tag
 from services.tasks import (
     create_task,
     create_tasks,
@@ -105,6 +106,19 @@ def update_task_route(task_id: int) -> Response:
     if "priority" not in data:
         raise ValidationError("priority", "is required")
     return jsonify(update_task_priority(task_id, data["priority"]))
+
+@api.route("/tags", methods=["POST"])
+def create_tag_route() -> tuple[Response, int]:
+    """Create a tag from the JSON request body.
+
+    Returns:
+        The new tag record as JSON, with status 201.
+
+    Raises:
+        ValidationError: If the body is not a JSON object, or a field is
+            missing or invalid.
+    """
+    return jsonify(create_tag(request.get_json(silent=True))), 201
 
 @api.route("/users/<int:user_id>", methods=["GET"])
 def get_user_route(user_id: int) -> Response:

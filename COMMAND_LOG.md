@@ -1,0 +1,7 @@
+# Command Log
+
+| Command invoked | $ARGUMENTS used | Stayed in scope? | What worked / what I changed |
+|---|---|---|---|
+| `/audit-errors` | `services/tasks.py` | Yes | The "skip it if it already uses AppError correctly" rule I added after Drill 1 (when Claude tried to rewrite the reference file `services/users.py`) worked here: on the already-fixed `services/tasks.py` it changed nothing, explained why it left the unhashable `task_id` case alone (routes only pass ints, and a guard would turn a 404 into a 422), and just ran pytest (64 passed). |
+| `/scaffold-endpoint` | `tags POST` | Yes | It created `schemas/tags.py`, `services/tags.py` and `tests/test_tags.py`, added a logic-free route to `routes/api.py`, and the new test got 201 (65 passed), but it added a duplicate-name check I never asked for and had to guess where the "body must be an object" check goes, so I added two Constraints: only validate what's in the schema, and put the body check in the service. |
+| `/add-tests` | `services/tasks.py get_tasks_by_status` | Yes | It added 14 tests (7 functions, 2 parametrized) for `get_tasks_by_status` to `tests/test_tasks.py` only and all 79 passed, but it wrote them with a Python script through Bash, not the Edit tool, so my `guard_writes.py` hook never saw that write, and I added a Constraint telling it to use Edit/Write so the hook can check the write. |

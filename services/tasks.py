@@ -3,6 +3,8 @@ from utils.errors import AppError, NotFoundError, ValidationError
 
 DEFAULT_PRIORITY = 3
 
+TASK_STATUSES: tuple[str, ...] = ("open", "done")
+
 TASKS: dict[int, dict] = {
     1: {"id": 1, "title": "Buy groceries",  "done": False, "user_id": 1,
         "priority": 3},
@@ -68,13 +70,15 @@ def _validate_new_task(title: str, user_id: int, priority: int) -> None:
         priority: The task's priority.
 
     Raises:
-        ValidationError: If title is empty or priority is not an integer
-            between 1 and 5.
+        ValidationError: If title is empty or not a string, user_id is not
+            an integer, or priority is not an integer between 1 and 5.
         NotFoundError: If no user exists with the given ID.
     """
-    if not title or not title.strip():
+    if not isinstance(title, str) or not title.strip():
         raise ValidationError("title", "cannot be empty")
     _validate_priority(priority)
+    if not isinstance(user_id, int) or isinstance(user_id, bool):
+        raise ValidationError("user_id", "must be an integer")
     if user_id not in USERS:
         raise NotFoundError("User")
 
@@ -91,12 +95,12 @@ def create_task(title: str, user_id: int,
         The newly created task record.
 
     Raises:
-        ValidationError: If title is empty or priority is not an integer
-            between 1 and 5.
+        ValidationError: If title is empty or not a string, user_id is not
+            an integer, or priority is not an integer between 1 and 5.
         NotFoundError: If no user exists with the given ID.
     """
     _validate_new_task(title, user_id, priority)
-    new_id = max(TASKS.keys()) + 1
+    new_id = max(TASKS, default=0) + 1
     TASKS[new_id] = {"id": new_id, "title": title,
                      "done": False, "user_id": user_id, "priority": priority}
     return TASKS[new_id]
@@ -115,12 +119,14 @@ def create_tasks(items: list[dict]) -> list[dict]:
         The newly created task records, in the same order as items.
 
     Raises:
-        ValidationError: If an item is not an object, is missing title or
-            user_id, or has an invalid title or priority. The message
-            starts with "Item <index>: ".
+        ValidationError: If items is not a list. Also if an item is not an
+            object, is missing title or user_id, or has an invalid title,
+            user_id, or priority; that message starts with "Item <index>: ".
         NotFoundError: If an item's user_id doesn't match a user. The
             message starts with "Item <index>: ".
     """
+    if not isinstance(items, list):
+        raise ValidationError("items", "must be a list")
     for index, item in enumerate(items):
         try:
             if not isinstance(item, dict):
@@ -157,11 +163,14 @@ def list_tasks(*, user_id: int | None = None,
 
     Raises:
         NotFoundError: If user_id is given and no user exists with that ID.
-        ValidationError: If priority is given and is not an integer
-            between 1 and 5.
+        ValidationError: If user_id is given and is not an integer, or
+            priority is given and is not an integer between 1 and 5.
     """
-    if user_id is not None and user_id not in USERS:
-        raise NotFoundError("User")
+    if user_id is not None:
+        if not isinstance(user_id, int) or isinstance(user_id, bool):
+            raise ValidationError("user_id", "must be an integer")
+        if user_id not in USERS:
+            raise NotFoundError("User")
     if priority is not None:
         _validate_priority(priority)
     matches = [task for task in TASKS.values()
@@ -169,6 +178,24 @@ def list_tasks(*, user_id: int | None = None,
                and (priority is None or task["priority"] == priority)]
     # sorted() is stable and TASKS is in ID order, so ties stay in ID order.
     return sorted(matches, key=lambda task: task["priority"])
+
+def get_tasks_by_status(status: str) -> list[dict]:
+    """Retrieve tasks by status.
+
+    Args:
+        status: Either "open" (not done) or "done".
+
+    Returns:
+        A list of task records with the given status, in ID order.
+        Empty if no tasks match.
+
+    Raises:
+        ValidationError: If status is not an allowed value.
+    """
+    if status not in TASK_STATUSES:
+        raise ValidationError("status", "must be one of: open, done")
+    want_done = status == "done"
+    return [task for task in TASKS.values() if task["done"] == want_done]
 
 def update_task_priority(task_id: int, priority: int) -> dict:
     """Update a task's priority.
