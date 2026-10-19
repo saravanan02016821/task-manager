@@ -1,8 +1,8 @@
 ## Goal
 Scaffold a new API endpoint. $ARGUMENTS has two values: the resource name first, then the HTTP method (for example: tags POST). Create or update these three files:
-- Route file: routes/api.py — add one new route for the resource and method.
-- Service file: services/<resource>.py — create it if it doesn't exist, and put all the logic for this endpoint there.
-- Schema file: schemas/<resource>.py — create it (and schemas/__init__.py) if it doesn't exist. It lists the resource's fields, which are required, and their types.
+- Route file: routes/api.py: add one new route for the resource and method.
+- Service file: services/<resource>.py: create it if it doesn't exist, and put all the logic for this endpoint there.
+- Schema file: schemas/<resource>.py: create it (and schemas/__init__.py) if it doesn't exist. It lists the resource's fields, which are required, and their types.
 
 ## Context
 - Canonical pattern: routes/tasks.py. In this repo there is no separate routes/tasks.py — all routes live in routes/api.py, so follow the task routes there (GET /tasks, POST /tasks, PATCH /tasks/<id>).
